@@ -5,6 +5,9 @@ import authenticationController from "./controller/authentication.controller";
 import textJustificationController from "./controller/text-justification.controller";
 import dotenv from "dotenv";
 import interceptors from "./interceptors/interceptors";
+import path from "node:path";
+import swaggerUi from "swagger-ui-express";
+import YAML from "yamljs";
 
 dotenv.config();
 
@@ -15,6 +18,7 @@ class Server {
 		this.app = express();
 		this.config();
 		this.routes();
+		this.documentation();
 	}
 
 	private config(): void {
@@ -36,6 +40,16 @@ class Server {
 			interceptors.checkJustifyDto,
 			interceptors.checkWordLimit,
 			textJustificationController.justifyParagraph,
+		);
+	}
+
+	private documentation(): void {
+		const filePath = path.join(process.cwd(), "documentation/swagger.yaml");
+		const swaggerDocument = YAML.load(filePath);
+		this.app.use(
+			"/api-docs",
+			swaggerUi.serve,
+			swaggerUi.setup(swaggerDocument),
 		);
 	}
 

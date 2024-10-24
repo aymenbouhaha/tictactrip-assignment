@@ -14,7 +14,8 @@ class Interceptors {
 		response: Response,
 		next: NextFunction,
 	) {
-		const token = request.headers["authorization"];
+		const auth = request.headers["authorization"];
+		const token = (auth as string).split(" ")[1];
 
 		if (!token) {
 			response
