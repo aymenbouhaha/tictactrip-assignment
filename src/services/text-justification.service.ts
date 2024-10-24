@@ -14,6 +14,16 @@ export class TextJustificationService {
 				lineLength += word.length;
 				index += 1;
 			} else {
+				if (word.length > maxWidth) {
+					const totalSpaces = maxWidth - lineLength - line.length;
+					const firstPart = word.slice(0, totalSpaces);
+					const secondPart = word.slice(totalSpaces);
+					words.splice(index, 1, firstPart, secondPart);
+					line.push(firstPart);
+					lineLength += firstPart.length;
+					index += 1;
+				}
+
 				const totalSpaces = maxWidth - lineLength;
 				const gaps = line.length - 1;
 				let justifiedLine = "";
