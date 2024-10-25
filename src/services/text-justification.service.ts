@@ -1,10 +1,12 @@
+import { LINE_MAX_WIDTH } from "../constant";
+
 export class TextJustificationService {
 	private justifyParagraph(paragraph: string): string {
 		const words = paragraph.trim().split(/\s+/);
 		const lines: string[] = [];
 		let line: string[] = [];
 		let lineLength = 0;
-		const maxWidth = 80;
+		const maxWidth = LINE_MAX_WIDTH;
 		let index = 0;
 
 		while (index < words.length) {
