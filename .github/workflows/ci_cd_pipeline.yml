@@ -1,0 +1,104 @@
+name: TicTacTrip Assignment Infrastructure & Application Deployment
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  terraform:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.1.7"
+
+      - name: Terraform Init
+        working-directory: infrastructure/
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: infrastructure/
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: terraform apply -replace="aws_instance.web" -auto-approve
+
+
+      - name: Terraform Output
+        id: tf_outputs
+        working-directory: infrastructure/
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: terraform output -json > tf_outputs.json
+
+      - name: Upload Terraform Outputs
+        uses: actions/upload-artifact@v3
+        with:
+          name: tf_outputs
+          path: infrastructure/tf_outputs.json
+
+  deploy:
+    name: Deploy Application
+    needs: terraform
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Download Terraform Outputs
+        uses: actions/download-artifact@v3
+        with:
+          name: tf_outputs
+          path: .
+
+      - name: Parse Terraform Outputs
+        id: parse_tf_outputs
+        run: |
+          echo "Parsing Terraform outputs..."
+          PUBLIC_IP=$(jq -r '.instance_public_ip.value' tf_outputs.json)
+          PRIVATE_KEY=$(jq -r '.private_key_pem.value' tf_outputs.json)
+          echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
+          echo "PRIVATE_KEY<<EOF" >> $GITHUB_ENV
+          echo "$PRIVATE_KEY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create .env File
+        run: |
+          echo "Creating .env file..."
+          touch application/.env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> application/.env
+          echo "DB_HOSTNAME=${{ secrets.DB_HOSTNAME }}" >> application/.env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> application/.env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> application/.env
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> application/.env
+          echo "PUBLIC_IP=http://${{ env.PUBLIC_IP }}" >> application/.env
+
+      - name: Copy Application Files to EC2
+        uses: appleboy/scp-action@v0.1.1
+        with:
+          host: ${{ env.PUBLIC_IP }}
+          username: ubuntu
+          key: ${{ env.PRIVATE_KEY }}
+          source: "application/*"
+          target: "~/"
+
+      - name: SSH into EC2 and Start Docker Compose
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.PUBLIC_IP }}
+          username: ubuntu
+          key: ${{ env.PRIVATE_KEY }}
+          script: |
+            cd ~/application
+            docker-compose up --build -d
+            docker-compose down 
+            docker-compose up --build -d
