@@ -50,7 +50,6 @@ class Server {
 		const publicIp = process.env.PUBLIC_IP || "http://localhost:3000";
 		swaggerContent = swaggerContent.replace(/\${PUBLIC_IP}/g, publicIp);
 		const swaggerDocument = yaml.load(swaggerContent) as swaggerUi.JsonObject;
-		console.log(swaggerDocument);
 		this.app.use(
 			"/api-docs",
 			swaggerUi.serve,
