@@ -1,0 +1,35 @@
+{
+  "name": "tictactrip-assignement",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn src/index.ts --files"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "js-yaml": "^4.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.0",
+    "prettier": "^3.3.3",
+    "reflect-metadata": "^0.2.2",
+    "swagger-ui-express": "^5.0.1",
+    "typeorm": "^0.3.11",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.7.9",
+    "@types/swagger-ui-express": "^4.1.6",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.6.3"
+  }
+}
