@@ -72,7 +72,7 @@ class Server {
 		this.app.listen(port, () => {
 			console.log(`Server is running on port ${port}`);
 			console.log(
-				`Please access api documentation on http://localhost:${port}/api-docs`,
+				`Please access api documentation on ${process.env.PUBLIC_IP || "http://localhost:3000"}/api-docs`,
 			);
 		});
 	}
