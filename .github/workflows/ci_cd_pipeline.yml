@@ -6,7 +6,7 @@ on:
 
 jobs:
   terraform:
-    name: Terraform Apply
+    name: Infrastructure Deployment
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -29,7 +29,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: terraform apply -replace="aws_instance.web" -auto-approve
+        run: terraform apply -auto-approve
 
 
       - name: Terraform Output
@@ -47,7 +47,7 @@ jobs:
           path: infrastructure/tf_outputs.json
 
   deploy:
-    name: Deploy Application
+    name: Application Deployment
     needs: terraform
     runs-on: ubuntu-latest
     steps:
